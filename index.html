@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="B777">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1016">
+<meta name="color-scheme" content="dark light">
+<title>B777 Companion</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#f4f1ea; --panel:#fffdf8; --panel2:#efe9dd; --line:#d9d1c0;
+  --ink:#1c1a15; --ink2:#5d564a; --ink3:#8a8273;
+  --accent:#9a6b12; --accent-ink:#5e3f00; --accent-bg:#f6e8c8;
+  --qrh:#b23a28; --mel:#8a6a12; --fcom:#2b6079; --notes:#4b5a3a;
+  --fctm:#2f7d6b; --oma:#6a4b8a; --omc:#4a6a86; --raig:#a85a2a;
+  --mark:#ffe49a; --mark-ink:#3a2c00;
+  --shadow:0 1px 2px rgba(40,30,10,.06),0 8px 24px rgba(40,30,10,.08);
+  --radius:14px;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="day"]){
+  --bg:#0b1016; --panel:#141b23; --panel2:#1c2630; --line:#2a3642;
+  --ink:#e8edf2; --ink2:#a9b6c2; --ink3:#73828f;
+  --accent:#e2b457; --accent-ink:#f2d79a; --accent-bg:#2a2214;
+  --qrh:#e8705c; --mel:#d6b25e; --fcom:#6fb4d6; --notes:#9ab87a;
+  --fctm:#5fc3ad; --oma:#b79bd6; --omc:#8fa6bd; --raig:#e0905a;
+  --mark:#5a4a16; --mark-ink:#ffe49a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+  color-scheme:dark;
+}}
+:root[data-theme="night"]{
+  --bg:#0b1016; --panel:#141b23; --panel2:#1c2630; --line:#2a3642;
+  --ink:#e8edf2; --ink2:#a9b6c2; --ink3:#73828f;
+  --accent:#e2b457; --accent-ink:#f2d79a; --accent-bg:#2a2214;
+  --qrh:#e8705c; --mel:#d6b25e; --fcom:#6fb4d6; --notes:#9ab87a;
+  --fctm:#5fc3ad; --oma:#b79bd6; --omc:#8fa6bd; --raig:#e0905a;
+  --mark:#5a4a16; --mark-ink:#ffe49a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:16px; line-height:1.5; -webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  padding-bottom:calc(24px + var(--safe-b));
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:var(--safe-t);background:var(--panel);z-index:40}
+.wrap{max-width:860px;margin:0 auto;
+  padding-left:max(16px,var(--safe-l)); padding-right:max(16px,var(--safe-r));}
+/* header */
+header{position:sticky;top:var(--safe-t);z-index:30;background:var(--panel);
+  border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand{display:flex;flex-direction:column;min-width:0;flex:1}
+.brand b{font-size:1.05rem;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.brand small{color:var(--ink3);font-size:.72rem;letter-spacing:.3px;text-transform:uppercase}
+.hbtn{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font:inherit;font-size:.8rem;border-radius:999px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.hbtn:active{transform:translateY(1px)}
+.searchrow{padding-bottom:12px;position:relative}
+.sugg{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:50;background:var(--panel2);
+  border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sgi{display:flex;align-items:baseline;gap:10px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--line)}
+.sgi:last-child{border-bottom:0}
+.sgi:hover,.sgi.on{background:var(--panel)}
+.sgt{color:var(--ink);font-size:.98rem;font-weight:600;line-height:1.35}
+.sgt mark{background:transparent;color:var(--accent);padding:0}
+.searchbox{display:flex;align-items:center;gap:10px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.searchbox svg{flex:none;color:var(--ink3)}
+#q{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1.05rem;outline:none;min-width:0}
+#q::placeholder{color:var(--ink3)}
+#q::-webkit-search-cancel-button,#q::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+.clr{border:0;background:transparent;color:var(--ink3);font-size:1.3rem;line-height:1;cursor:pointer;padding:0 2px}
+.facets{display:flex;gap:7px;padding-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.facet{flex:none;appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink2);
+  font:inherit;font-size:.82rem;border-radius:999px;padding:6px 13px;cursor:pointer}
+.facet[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+/* content */
+main{padding-top:16px}
+.hint{color:var(--ink3);font-size:.9rem;text-align:center;padding:10px 0 18px}
+.sec-h{display:flex;align-items:baseline;gap:9px;margin:18px 0 9px}
+.sec-h .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.sec-h b{font-size:.78rem;text-transform:uppercase;letter-spacing:.7px}
+.sec-h span{color:var(--ink3);font-size:.76rem}
+.dot.QRH{background:var(--qrh)} .dot.MEL{background:var(--mel)}
+.dot.FCOM{background:var(--fcom)} .dot.NOTES{background:var(--notes)}
+.dot.FCTM{background:var(--fctm)} .dot.OMA{background:var(--oma)}
+.dot.OMC{background:var(--omc)} .dot.RAIG{background:var(--raig)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:14px 15px;margin-bottom:10px;cursor:pointer;position:relative}
+.card:active{transform:translateY(1px)}
+.card .crumb{font-size:.73rem;color:var(--ink3);margin-bottom:3px;line-height:1.35}
+.card .ttl{font-weight:650;font-size:1rem;margin-bottom:5px;line-height:1.3}
+.card .snip{font-size:.9rem;color:var(--ink2);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ref{font-family:var(--mono);font-size:.72rem;color:var(--ink3);margin-top:8px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.ref b{color:var(--accent);font-weight:600}
+mark{background:var(--mark);color:var(--mark-ink);border-radius:3px;padding:0 1px}
+.pin{position:absolute;top:10px;right:10px;border:0;background:transparent;cursor:pointer;
+  color:var(--ink3);font-size:1.05rem;line-height:1;padding:4px}
+.pin.on{color:var(--accent)}
+/* quick picks */
+.qp-h{font-size:.74rem;text-transform:uppercase;letter-spacing:.7px;color:var(--ink3);margin:6px 0 10px}
+.qp{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.qp button{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  font:inherit;font-size:.85rem;border-radius:10px;padding:9px 13px;cursor:pointer}
+.qp button:active{transform:translateY(1px)}
+.notice{background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;font-size:.82rem;color:var(--ink2);margin:20px 0}
+.notice b{color:var(--ink)}
+/* detail + sheet */
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(10,12,16,.55);
+  display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:860px;max-height:92vh;overflow:auto;
+  border-radius:18px 18px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.4);
+  padding:0 max(16px,var(--safe-l)) calc(28px + var(--safe-b)) max(16px,var(--safe-r));
+  animation:up .22s ease}
+@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-bar{position:sticky;top:0;background:var(--bg);padding:12px 0 10px;
+  display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);z-index:1}
+.sheet-bar .tag{font-family:var(--mono);font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:6px;
+  color:#fff;letter-spacing:.5px}
+.tag.QRH{background:var(--qrh)} .tag.MEL{background:var(--mel)}
+.tag.FCOM{background:var(--fcom)} .tag.NOTES{background:var(--notes)}
+.tag.FCTM{background:var(--fctm)} .tag.OMA{background:var(--oma)}
+.tag.OMC{background:var(--omc)} .tag.RAIG{background:var(--raig)}
+.sheet-bar .x{margin-left:auto;border:0;background:var(--panel2);color:var(--ink2);
+  width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer}
+.sheet h2{font-size:1.15rem;margin:16px 0 4px;line-height:1.25}
+.sheet .crumb{font-size:.76rem;color:var(--ink3);margin-top:12px}
+.body-text{white-space:pre-wrap;font-size:.95rem;line-height:1.62;margin-top:12px;color:var(--ink)}
+.body-text.mono{font-family:var(--mono);font-size:.84rem;white-space:pre-wrap}
+.more-h{font-size:.74rem;text-transform:uppercase;letter-spacing:.7px;color:var(--ink3);margin:22px 0 8px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--panel);color:var(--ink2);font:inherit;font-size:.85rem;
+  padding:9px 6px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-bg);color:var(--accent-ink);font-weight:600}
+.about-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.about-row span:first-child{color:var(--ink2)}
+.about-row span:last-child{font-family:var(--mono);font-size:.82rem;text-align:right}
+.lbl{font-size:.74rem;text-transform:uppercase;letter-spacing:.7px;color:var(--ink3);margin:20px 0 6px}
+.loading{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+.loading .ring{width:38px;height:38px;border:3px solid var(--line);border-top-color:var(--accent);
+  border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{color:var(--ink2);font-size:.9rem;max-width:300px}
+.loading b{color:var(--ink);display:block;font-size:1.1rem;margin-bottom:2px}
+.err{color:var(--qrh);font-size:.85rem}
+.htabs{margin:2px 0 12px}
+.bcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:13px 15px;margin-bottom:10px;cursor:pointer;
+  display:flex;align-items:center;gap:12px}
+.bcard:active{transform:translateY(1px)}
+.bcard .bmain{flex:1;min-width:0}
+.bcard .btt{font-weight:650;font-size:1rem;line-height:1.25}
+.bcard .bei{font-family:var(--mono);font-size:.74rem;color:var(--accent);margin-top:3px}
+.badge{flex:none;font-size:.62rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:4px 8px;border-radius:6px;background:var(--accent-bg);color:var(--accent-ink);white-space:nowrap}
+.badge.man{background:transparent;border:1px solid var(--qrh);color:var(--qrh)}
+.bhint{color:var(--ink3);font-size:.82rem;margin:4px 0 14px;line-height:1.5}
+.curbar{background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;padding:11px 14px;
+  margin-top:12px;font-size:.88rem;color:var(--accent-ink);cursor:pointer}
+.curbar b{color:var(--ink)}
+.clrbtn{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--ink2);font:inherit;font-size:.72rem;border-radius:999px;padding:4px 11px;cursor:pointer}
+.ai-brief{white-space:pre-wrap;font-size:.95rem;line-height:1.6;margin-top:12px;color:var(--ink);min-height:1.2em}
+.ai-brief b{color:var(--ink)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.setrow.col{flex-direction:column;align-items:stretch}
+.setrow span{color:var(--ink2);font-size:.9rem}
+.setrow input[type=text],.setrow select{margin-top:6px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;padding:9px 11px}
+.setrow input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+code{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.85em}
+.brief-trig{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:11px 13px;font-size:.9rem;color:var(--ink);margin-top:12px}
+.brief-trig b{color:var(--accent-ink);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+.orient{font-size:.72rem;color:var(--ink3);font-style:italic;margin:14px 0 4px}
+.brief-lead{font-size:.96rem;line-height:1.6;margin-top:4px}
+.brief-first{background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;
+  padding:12px 14px;margin-top:14px}
+.brief-first .fl{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--accent-ink);font-weight:700;margin-bottom:5px}
+.brief-first .ft{font-family:var(--mono);font-size:.84rem;line-height:1.55;color:var(--ink)}
+.bsec-h{font-size:.74rem;text-transform:uppercase;letter-spacing:.7px;color:var(--ink3);
+  margin:22px 0 2px;display:flex;align-items:center;gap:8px}
+.bsec-h .ln{flex:1;height:1px;background:var(--line)}
+.bchunk{border-left:3px solid var(--line);padding:4px 0 4px 12px;margin-top:12px}
+.bchunk .bx{white-space:pre-wrap;font-size:.88rem;line-height:1.55;color:var(--ink)}
+.bchunk.QRH{border-color:var(--qrh)} .bchunk.FCOM{border-color:var(--fcom)}
+.bchunk.FCTM{border-color:var(--fctm)} .bchunk.NOTES{border-color:var(--notes)}
+.bchunk.OMA{border-color:var(--oma)} .bchunk.OMC{border-color:var(--omc)}
+.seealso{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.seealso button{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  font:inherit;font-size:.82rem;border-radius:999px;padding:7px 12px;cursor:pointer}
+.grp-h{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--ink3);font-weight:700;margin:6px 0 10px}
+.grp-h.two{margin-top:22px}
+.ops-bottom{background:var(--accent-bg);border:1px solid var(--accent);border-radius:12px;
+  padding:13px 15px;margin-top:12px;font-size:.95rem;line-height:1.55;color:var(--ink)}
+.ops-bottom b{color:var(--accent-ink);font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.opsg{margin-top:20px}
+.opsg h3{font-size:.95rem;margin:0 0 4px;color:var(--ink);font-weight:700}
+.opsg h3::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle}
+.opt{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.opt:last-child{border-bottom:0}
+.opt .dotn{flex:none;width:6px;height:6px;border-radius:50%;background:var(--ink3);margin-top:8px}
+.opt .otx{flex:1;min-width:0;font-size:.92rem;line-height:1.5}
+.cite{display:inline-block;margin-left:7px;font-family:var(--mono);font-size:.68rem;color:var(--accent);
+  border:1px solid var(--line);border-radius:5px;padding:1px 6px;cursor:pointer;white-space:nowrap;vertical-align:baseline}
+.cite.bad{color:#d98a8a;border-color:#5a3a3a;opacity:.85}
+.cite:active{transform:translateY(1px)}
+details.src{margin-top:24px;border-top:1px solid var(--line);padding-top:12px}
+details.src summary{cursor:pointer;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);font-weight:700;list-style:none}
+details.src summary::-webkit-details-marker{display:none}
+details.src summary::before{content:"▸ ";color:var(--accent)}
+details.src[open] summary::before{content:"▾ "}
+</style>
+</head>
+<body>
+<div class="loading" id="loading">
+  <div class="ring"></div>
+  <div><b>B777 Companion</b><p id="loadmsg">Loading the manuals…</p></div>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="hbar">
+      <div class="brand">
+        <b>B777 Companion</b>
+        <small>On-demand briefs · study aid, not a controlled document</small>
+      </div>
+      <button class="hbtn" id="setBtn">⚙ AI</button>
+      <button class="hbtn" id="aboutBtn">Currency</button>
+      <button class="hbtn" id="themeBtn">◐</button>
+    </div>
+    <div class="searchrow">
+      <div class="searchbox">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Any topic — e.g. STATUS AUTOBRAKE, autothrottle L, hot weather ops" enterkeyhint="search">
+        <button class="clr" id="clr" hidden>×</button>
+      </div>
+      <div class="sugg" id="sugg" role="listbox" hidden></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+
+<script>
+function b64ToBytes(b64){var bin=atob(b64),n=bin.length,out=new Uint8Array(n);for(var i=0;i<n;i++)out[i]=bin.charCodeAt(i);return out;}
+async function gunzipToText(bytes){
+  if(typeof DecompressionStream!=="undefined"){
+    var ds=new DecompressionStream("gzip");
+    return await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
+  }
+  throw new Error("This browser is too old — needs Safari 16.4+, Chrome or Edge.");
+}
+
+/* ---------- corpus + BM25 retrieval ---------- */
+var DOCS=[], BYID={}, POST={}, DF={}, DLEN=[], AVGDL=1, NDOC=0;
+var K1=1.2, B=0.75, WT_TEXT=1.0, WT_TITLE=2.5, WT_CRUMB=1.5;
+var MANUALS=["QRH","MEL","FCOM","FCTM","OMA","OMC","RAIG","LIDO","GOM","NOTES"];
+var MLABEL={QRH:"QRH",MEL:"MEL",FCOM:"FCOM",FCTM:"FCTM",OMA:"OM-A",OMC:"OM-C",RAIG:"RAIG",LIDO:"LIDO",GOM:"GOM",NOTES:"My notes"};
+var SYN={
+  "a/t":["autothrottle"],"autothrottle":["autothrottle","a/t","autothrust"],"at":["autothrottle"],
+  "ap":["autopilot"],"fd":["flight director"],"fmc":["flight management","cdu"],"cdu":["fmc","flight management"],
+  "u/s":["inoperative","unserviceable"],"inop":["inoperative","inop","fault","failure"],"fail":["failure","failed","fault"],
+  "wx":["weather"],"ldg":["landing"],"tko":["takeoff"],"to":["takeoff"],"dep":["departure"],"app":["approach"],
+  "eng":["engine"],"hyd":["hydraulic"],"elec":["electrical","electric"],"gen":["generator"],"batt":["battery"],
+  "press":["pressurization","pressurisation"],"depress":["depressurization","depressurisation","decompression"],
+  "cab alt":["cabin altitude"],"decomp":["decompression","depressurization"],
+  "apu":["auxiliary power unit"],"gear":["landing gear"],"brakes":["brake","autobrake","antiskid"],"brake":["autobrake","antiskid"],
+  "antiskid":["anti-skid","antiskid"],"ab":["autobrake"],
+  "rto":["rejected takeoff","reject"],"abort":["rejected takeoff"],
+  "ws":["windshear","wind shear"],"windshear":["wind shear","predictive windshear"],
+  "gpws":["ground proximity","terrain","pull up"],"egpws":["ground proximity","terrain","pull up"],"terrain":["gpws","pull up"],
+  "tcas":["traffic","resolution advisory","ra","acas"],"ra":["resolution advisory","tcas"],
+  "fire":["fire","smoke","overheat"],"smoke":["smoke","fumes","fire"],"fumes":["smoke","fumes"],"ovht":["overheat"],
+  "fuel":["fuel"],"imbalance":["fuel imbalance","imbalance"],"jettison":["fuel jettison","dump"],"dump":["fuel jettison"],
+  "ice":["icing","anti-ice","ice"],"deice":["de-ice","anti-ice","icing"],"anti-ice":["anti ice","icing"],"icing":["ice","anti-ice"],
+  "flap":["flaps","slat","leading edge","trailing edge"],"slat":["slats","leading edge"],
+  "irs":["inertial","adiru"],"adr":["air data"],"adiru":["inertial","air data"],"pitot":["pitot","static","unreliable airspeed"],
+  "unreliable":["unreliable airspeed","airspeed unreliable"],"airspeed":["airspeed","speed"],
+  "cpdlc":["data link","datalink","controller pilot","ads-c","fans"],"datalink":["data link","cpdlc","fans"],"data link":["cpdlc","fans","ads-c"],
+  "selcal":["selcal"],"hf":["high frequency","hf"],"satcom":["satellite","satcom"],"vhf":["very high frequency"],
+  "pa":["passenger address","passenger","address"],"p/a":["passenger address","passenger","address"],"public":["passenger"],
+  "announcement":["passenger address","address"],"announcements":["passenger address","address"],"prerecorded":["prerecorded passenger announcement"],
+  "interphone":["interphone","intercom","flight interphone","cabin interphone"],"intercom":["interphone"],"megaphone":["megaphone"],
+  "oceanic":["oceanic","nat","north atlantic","slop","cpdlc"],"nat":["north atlantic","oceanic","hla","track"],"etops":["etops","extended range","edto"],
+  "divert":["diversion","nearest suitable"],"ditch":["ditching","water landing"],"evac":["evacuation","evacuate"],
+  "stab":["stabilizer","trim"],"cg":["center of gravity","centre of gravity","trim"],"perf":["performance"],"wt":["weight","mass"],
+  "xwind":["crosswind"],"crosswind":["cross wind"],"qnh":["altimeter","barometric"],"lvo":["low visibility"],"lvp":["low visibility"],
+  "rvsm":["rvsm","reduced vertical separation"],"mel":["minimum equipment","dispatch"],"ddg":["deferred defect"],
+  "overweight":["overweight landing","overweight"],"go around":["go-around","missed approach","twogo"],"ga":["go-around"],
+  "bleed":["bleed air","pneumatic","duct"],"pack":["air conditioning pack","pack"],"apu":["auxiliary power unit"],
+  "elec config":["electrical configuration"],"tr":["transformer rectifier"],"ram":["ram air turbine","rat"],"rat":["ram air turbine"]
+};
+var STOP={"the":1,"a":1,"an":1,"of":1,"to":1,"in":1,"on":1,"for":1,"and":1,"with":1,"is":1,"it":1,"i":1,
+  "get":1,"my":1,"what":1,"should":1,"be":1,"are":1,"do":1,"the":1,"inflight":1,"in-flight":1,
+  "eicas":1,"message":1,"we":1,"our":1,"how":1,"any":1,"take":1,"account":1,"consider":1};
+function norm(q){return q.replace(/(\w)['’](\w)/g,"$1$2");}
+function tokens(q){return (norm(q).toLowerCase().match(/[a-z0-9/\-]+/g)||[]);}
+function qTerms(q){
+  var out={}; tokens(q).forEach(function(w){ if(STOP[w]||w.length<2)return;
+    (SYN[w]||[w]).forEach(function(a){ tokens(a).forEach(function(t){ if(!STOP[t])out[t]=1; }); }); out[w]=1; });
+  return Object.keys(out);
+}
+/* British<->American spelling folding so e.g. "stabilization" finds "stabilisation".
+   Applied identically to the index and to query terms, so the canonical side is arbitrary. */
+var SPELL={aeroplane:"airplane",aeroplanes:"airplanes",tyre:"tire",tyres:"tires",
+  manoeuvre:"maneuver",manoeuvres:"maneuvers",manoeuvring:"maneuvering",
+  centre:"center",centres:"centers",metre:"meter",metres:"meters",litre:"liter",litres:"liters",
+  fibre:"fiber",defence:"defense",licence:"license",catalogue:"catalog",grey:"gray",
+  aluminium:"aluminum",behaviour:"behavior",colour:"color",favour:"favor",labour:"labor",
+  honour:"honor",neighbour:"neighbor",programme:"program",kerb:"curb",ageing:"aging"};
+function canon(w){ if(SPELL[w])return SPELL[w];
+  return w.replace(/isations$/,"izations").replace(/isation$/,"ization")
+          .replace(/ising$/,"izing").replace(/ised$/,"ized").replace(/ise$/,"ize")
+          .replace(/ysing$/,"yzing").replace(/ysed$/,"yzed").replace(/yse$/,"yze"); }
+function cnt(s){var m=new Map();tokens(s).forEach(function(t){t=canon(t);m.set(t,(m.get(t)||0)+1);});return m;}
+function buildIndex(docs){
+  DOCS=docs;NDOC=docs.length;var sum=0;
+  for(var i=0;i<docs.length;i++){var d=docs[i];BYID[d.id]=d;
+    var tt=cnt(d.text),ti=cnt(d.title),tc=cnt(d.breadcrumb),dl=0;
+    tt.forEach(function(v){dl+=v;});DLEN[i]=dl||1;sum+=DLEN[i];
+    var wtf=new Map();
+    tt.forEach(function(v,k){wtf.set(k,(wtf.get(k)||0)+v*WT_TEXT);});
+    ti.forEach(function(v,k){wtf.set(k,(wtf.get(k)||0)+v*WT_TITLE);});
+    tc.forEach(function(v,k){wtf.set(k,(wtf.get(k)||0)+v*WT_CRUMB);});
+    wtf.forEach(function(v,k){(POST[k]=POST[k]||[]).push([i,v]);DF[k]=(DF[k]||0)+1;});
+  }
+  AVGDL=sum/Math.max(NDOC,1);
+}
+function idf(t){var df=DF[t]||0;return Math.log(1+(NDOC-df+0.5)/(df+0.5));}
+function searchRanked(q,limit){
+  var ts=qTerms(q).map(canon); if(!ts.length)return [];
+  var acc=new Map();
+  ts.forEach(function(t){var post=POST[t];if(!post)return;var w=idf(t);
+    for(var j=0;j<post.length;j++){var di=post[j][0],wtf=post[j][1];
+      var sc=w*(wtf*(K1+1))/(wtf+K1*(1-B+B*DLEN[di]/AVGDL));
+      acc.set(di,(acc.get(di)||0)+sc);}});
+  var arr=Array.from(acc.entries()).sort(function(a,b){return b[1]-a[1];}).slice(0,limit);
+  return arr.map(function(e){return DOCS[e[0]];});
+}
+
+/* ---------- rendering helpers ---------- */
+function esc(s){return (s||"").replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function isSec(r){return /\./.test(String(r.page||""));}  /* dotted ref (e.g. 1.6.6.1) = a DocuNet section, cite with § not p */
+function refLine(r){ if(r.manual==="NOTES")return '<b>my notes</b>';
+  var b=[]; if(r.page)b.push('<b>'+(isSec(r)?'§'+r.page:'p'+r.page)+'</b>'); if(r.rev)b.push('rev '+r.rev); if(r.revdate)b.push(r.revdate); return b.join(' · '); }
+function hlTerms(q){return qTerms(q).filter(function(w){return w.length>=2;}).sort(function(a,b){return b.length-a.length;});}
+function highlight(text,terms){var safe=esc(text);if(!terms.length)return safe;
+  var pat=terms.map(function(w){return w.replace(/[.*+?^${}()|[\]\\\/-]/g,"\\$&");}).join("|");
+  try{return safe.replace(new RegExp("("+pat+")","ig"),"<mark>$1</mark>");}catch(e){return safe;}}
+function snippet(text,terms){var c=text.replace(/\s+/g," ").trim();
+  if(terms.length){var low=c.toLowerCase(),pos=-1;for(var i=0;i<terms.length;i++){var p=low.indexOf(terms[i]);if(p>=0&&(pos<0||p<pos))pos=p;}
+    if(pos>90)c="…"+c.slice(pos-70);} return c.slice(0,260);}
+function chunkHTML(id){var r=BYID[id];if(!r)return "";
+  return '<div class="bchunk '+r.manual+'"><div class="bx">'+esc(r.text.trim())+'</div>'+
+    '<div class="ref" style="margin-top:7px">'+refLine(r)+(r.manual!=="NOTES"?' · '+(MLABEL[r.manual]||r.manual):'')+'</div></div>';}
+function resCard(r,terms){
+  var crumb=esc(r.breadcrumb.split(" > ").slice(0,-1).join(" › "))||esc(MLABEL[r.manual]||r.manual);
+  return '<div class="card" data-id="'+r.id+'"><div class="crumb">'+crumb+'</div>'+
+    '<div class="ttl">'+highlight(r.title,terms)+'</div>'+
+    '<div class="snip">'+highlight(snippet(r.text,terms),terms)+'</div>'+
+    '<div class="ref">'+refLine(r)+(r.manual!=="NOTES"?' · '+(MLABEL[r.manual]||r.manual):'')+'</div></div>';
+}
+
+/* ---------- curated briefs ---------- */
+var BRIEFS=[];
+function hayOf(b){var s=b.title+" "+(b.tag||"")+" "+(b.kw||"")+" "+b.bottom;b.groups.forEach(function(g){s+=" "+g.h;g.points.forEach(function(p){s+=" "+p.t;});});return s.toLowerCase();}
+function tset(s){var o={};(String(s).toLowerCase().match(/[a-z0-9]+/g)||[]).forEach(function(w){o[canon(w)]=1;});return o;}
+function curatedMatch(q){var toks=qTerms(q).map(canon);if(!toks.length)return null;
+  var best=null,bestsc=0;
+  for(var i=0;i<BRIEFS.length;i++){var b=BRIEFS[i];
+    if(!b.__ix) b.__ix={T:tset(b.title||""),K:tset(b.kw||""),Bd:tset(hayOf(b))};  /* build once, reuse */
+    var T=b.__ix.T,K=b.__ix.K,Bd=b.__ix.Bd,sc=0;
+    toks.forEach(function(t){ if(T[t])sc+=3; else if(K[t])sc+=2; else if(Bd[t])sc+=0.3; });
+    if(sc>bestsc){bestsc=sc;best=b;}}
+  return bestsc>=2?best:null;   /* need at least a title/kw anchor, not an incidental body word */
+}
+function briefBodyHTML(b){
+  var html='<h2>'+esc(b.title)+'</h2>';
+  if(b.tag)html+='<div class="ref" style="margin-top:6px"><b>'+esc(b.tag)+'</b></div>';
+  if(b.bottom)html+='<div class="ops-bottom"><b>Bottom line</b>'+esc(b.bottom)+'</div>';
+  html+='<div class="orient">'+(b.draft?'<b>REASONED</b> — deduced across your manuals from verbatim extracts. A study aid, not authority: verify against the EFB / QRH / OM before trusting; tap a reference for the exact source.':'Reasoned from your manuals. Fly the actual QRH / OM / EFB; tap a reference for the exact source.')+'</div>';
+  (b.groups||[]).forEach(function(g){html+='<div class="opsg"><h3>'+esc(g.h)+'</h3>';
+    g.points.forEach(function(p){var cite=p.ref?('<span class="cite"'+(p.cid?' data-cid="'+p.cid+'"':'')+'>'+esc(p.ref)+'</span>'):'';
+      html+='<div class="opt"><span class="dotn"></span><span class="otx">'+esc(p.t)+cite+'</span></div>';});
+    html+='</div>';});
+  if(b.sources&&b.sources.length){html+='<details class="src"><summary>Source extracts (verbatim)</summary>';b.sources.forEach(function(cid){html+=chunkHTML(cid);});html+='</details>';}
+  return html;
+}
+function openBrief(id){
+  var b=null;for(var i=0;i<BRIEFS.length;i++)if(BRIEFS[i].id===id){b=BRIEFS[i];break;}if(!b)return;
+  var taglbl=b.kind==="ops"?"OPS BRIEF":"BRIEF";
+  var html='<div class="sheet-bar"><span class="tag QRH">'+taglbl+'</span>'+
+    (b.badge?'<span class="badge" style="margin-left:2px">'+esc(b.badge)+'</span>':'')+'<button class="x" id="sheetX">×</button></div>'+briefBodyHTML(b);
+  var sheet=document.getElementById("sheet");sheet.innerHTML=html;sheet.scrollTop=0;document.getElementById("overlay").classList.add("show");
+}
+function openSource(id){var r=BYID[id];if(!r)return;var isNote=r.manual==="NOTES";
+  var html='<div class="sheet-bar"><span class="tag '+r.manual+'">'+(MLABEL[r.manual]||r.manual)+'</span><button class="x" id="sheetX">×</button></div>';
+  html+='<h2>'+esc(r.title)+'</h2><div class="ref" style="margin-top:6px">'+refLine(r)+'</div>';
+  html+='<div class="crumb">'+esc(r.breadcrumb.replace(/ > /g," › "))+'</div><div class="body-text">'+esc(r.text.trim())+'</div>';
+  if(r.page&&!isNote)html+='<div class="notice" style="margin-top:20px">Confirm against <b>'+(MLABEL[r.manual]||r.manual)+(isSec(r)?' ':' p')+r.page+'</b> in DocuNet / the EFB. Study extract, not the controlled page.</div>';
+  var sheet=document.getElementById("sheet");sheet.innerHTML=html;sheet.scrollTop=0;document.getElementById("overlay").classList.add("show");}
+function closeSheet(){document.getElementById("overlay").classList.remove("show");}
+
+/* ---------- on-demand brief ---------- */
+var ROLES=[
+  {h:"What to do — QRH / immediate",f:function(r){return r.manual==="QRH"&&!/Performance Inflight/.test(r.breadcrumb);},n:3},
+  {h:"Dispatch & legality — MEL / OM-A",f:function(r){return r.manual==="MEL"||r.manual==="OMA";},n:3},
+  {h:"Limitations & numbers",f:function(r){return (r.manual==="FCOM"&&/Limitations/i.test(r.breadcrumb))||(r.manual==="NOTES"&&/(limit|key number)/i.test(r.breadcrumb));},n:2},
+  {h:"How it works — FCOM",f:function(r){return r.manual==="FCOM";},n:3},
+  {h:"Technique & airmanship — FCTM",f:function(r){return r.manual==="FCTM";},n:2},
+  {h:"Company & route — OM-C",f:function(r){return r.manual==="OMC";},n:2},
+  {h:"Route manual — LIDO (oceanic, NAT, comms, country rules)",f:function(r){return r.manual==="LIDO";},n:3},
+  {h:"Performance — QRH / RAIG",f:function(r){return (r.manual==="QRH"&&/Performance Inflight/.test(r.breadcrumb))||r.manual==="RAIG";},n:2},
+  {h:"Other manuals",f:function(r){return ["QRH","MEL","OMA","FCOM","FCTM","OMC","RAIG","LIDO","NOTES"].indexOf(r.manual)<0;},n:2},
+  {h:"From your notes",f:function(r){return r.manual==="NOTES";},n:2}
+];
+/* ---------- local AI (Ollama) ---------- */
+var AI={engine:"off",url:"http://localhost:11434",model:"qwen2.5:7b-instruct",wmodel:"Qwen2.5-3B-Instruct-q4f16_1-MLC",akey:"",cmodel:"claude-sonnet-4-5",v3:true};
+try{var _s=JSON.parse(localStorage.getItem("b7_ai")||"null");if(_s){AI.url=_s.url||AI.url;AI.model=_s.model||AI.model;AI.akey=_s.akey||AI.akey;AI.cmodel=_s.cmodel||AI.cmodel;if(_s.v3){AI.wmodel=_s.wmodel||AI.wmodel;AI.engine=_s.engine||"off";}}}catch(e){}
+var WLLM_MODELS=["Qwen2.5-3B-Instruct-q4f16_1-MLC","Qwen2.5-1.5B-Instruct-q4f16_1-MLC","Llama-3.2-3B-Instruct-q4f16_1-MLC","Llama-3.2-1B-Instruct-q4f16_1-MLC"];
+var webllm=null, wllmEngine=null;
+function saveAI(){try{localStorage.setItem("b7_ai",JSON.stringify(AI));}catch(e){}}
+/* ETA self-calibration: learn typical brief length per engine+model, stored per-device (localStorage) */
+function etaKey(){return AI.engine+":"+(AI.engine==="webllm"?AI.wmodel:AI.model);}
+function etaGet(){try{var m=JSON.parse(localStorage.getItem("b7_eta")||"{}"),v=m[etaKey()];return (v&&v.avg)?v:null;}catch(e){return null;}}
+function etaPut(len){if(!(len>200))return;try{var m=JSON.parse(localStorage.getItem("b7_eta")||"{}"),k=etaKey(),v=m[k]||{avg:len,n:0};
+  v.avg=Math.round(v.n?(0.35*len+0.65*v.avg):len);v.n=Math.min((v.n||0)+1,99);m[k]=v;localStorage.setItem("b7_eta",JSON.stringify(m));}catch(e){}}
+var SYSTEM="You are a Boeing 777 operational briefing assistant, used by a line pilot for PERSONAL STUDY. You are given verbatim extracts from the manuals (FCOM, QRH, MEL, FCTM, OM-A, OM-C, RAIG, GOM, LIDO) and personal study notes. Write ONE concise, practical operational brief answering the query.\nHARD RULES:\n- Use ONLY the provided extracts. Do not add outside knowledge, numbers, limits or procedures.\n- CITATIONS: you may cite ONLY the exact source tags shown in parentheses on the [E#] extract headers (e.g. [QRH p226] or [LIDO 1.6.6.1]). NEVER invent, guess or change a page number, section number or document code. Copy a tag exactly, or state the fact with no bracketed citation. Do not write the [E#] label as a citation.\n- Keep memory items, checklist actions and limitations VERBATIM; never paraphrase a limit or a number.\n- If something operationally important is NOT in the extracts, say: 'Not in the provided extracts - check the source documents.' Do not guess.\n- This is a study aid, NOT operational authority. The EFB/QRH is authoritative.\n- Never repeat a sentence or a bullet. State each fact ONCE, then move on. When the brief is complete, stop.\nBe terse and operational. A line pilot is reading this, not a student. Aim for well under one screen.";
+function citePlain(r){var s=MLABEL[r.manual]||r.manual;if(r.manual!=="NOTES"&&r.page)s+=(isSec(r)?" ":" p")+r.page;if(r.rev)s+=" rev"+r.rev;if(r.revdate)s+=" "+r.revdate;return s;}
+function buildPrompt(q,picks,lean){
+  var cap=lean?650:1100, use=lean?picks.slice(0,12):picks;
+  var L=["QUERY: "+q,"","EXTRACTS (your manuals):",""];
+  use.forEach(function(r,i){var t=r.text.replace(/\n{3,}/g,"\n\n").trim();if(t.length>cap)t=t.slice(0,cap)+" ...[cut]";
+    L.push("[E"+(i+1)+"] ("+citePlain(r)+") "+r.manual+" > "+r.title);L.push(t);L.push("");});
+  L.push("Write the brief now. Sections (omit any with no relevant extract): Bottom line; What to do; Dispatch & legality; Limitations & numbers; How it works; Technique & airmanship; Watch for / insights.");
+  L.push("Cite with the source tags shown above (e.g. [QRH p226]). End with a 'Sources:' line listing the tags you used.");
+  return L.join("\n");
+}
+function normCite(s){return String(s).toLowerCase().replace(/§/g,"").replace(/^e\d+\s*/,"").replace(/\s+/g," ").trim();}
+function fmtAI(t){var h=esc(t);
+  h=h.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>");
+  h=h.replace(/\[([A-Za-z][^\]]{0,40})\]/g,function(m,tag){
+    var ok=window.__validCites && window.__validCites.has(normCite(tag));
+    return ok ? '<span class="cite">'+tag+'</span>'
+              : '<span class="cite bad" title="not in the retrieved sources — verify before use">'+tag+' ⚠</span>';
+  });
+  return h.replace(/\n/g,"<br>");
+}
+async function ollamaStream(prompt,onTok,onDone,onErr){
+  try{
+    var resp=await fetch(AI.url.replace(/\/+$/,"")+"/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:AI.model,system:SYSTEM,prompt:prompt,stream:true,options:{temperature:0.2}})});
+    if(!resp.ok){var et="";try{et=(await resp.text()).replace(/\s+/g," ").slice(0,200);}catch(e){}
+      onErr("HTTP "+resp.status+(et?" — "+et:"")+(resp.status===404?" (is the Model name exactly one from `ollama list`?)":""));return;}
+    var reader=resp.body.getReader(),dec=new TextDecoder(),buf="";
+    while(true){var rr=await reader.read();if(rr.done)break;buf+=dec.decode(rr.value,{stream:true});
+      var nl;while((nl=buf.indexOf("\n"))>=0){var line=buf.slice(0,nl).trim();buf=buf.slice(nl+1);
+        if(!line)continue;try{var j=JSON.parse(line);if(j.response)onTok(j.response);if(j.done){onDone();return;}}catch(e){}}}
+    onDone();
+  }catch(e){onErr(e.message||String(e));}
+}
+/* ---------- on-device engine (WebLLM / WebGPU — runs on iPhone too) ---------- */
+async function loadWebLLM(onProg){
+  if(typeof navigator==="undefined"||!navigator.gpu) throw new Error("WebGPU not available — open via the launcher (localhost) in Chrome/Edge on PC, or Safari on iOS 18+. A bare file:// won't work.");
+  if(!webllm){ if(onProg)onProg("loading engine…",0); webllm=await import("https://esm.run/@mlc-ai/web-llm@0.2.79"); }
+  if(!wllmEngine || wllmEngine.__b7!==AI.wmodel){
+    if(onProg)onProg("downloading model (one-time ~1–2GB)…",0);
+    wllmEngine=await webllm.CreateMLCEngine(AI.wmodel,{initProgressCallback:function(r){if(onProg)onProg(r.text||"loading…",r.progress||0);}});
+    wllmEngine.__b7=AI.wmodel;
+  }
+  return wllmEngine;
+}
+async function webllmStream(prompt,onTok,onDone,onErr,onProg){
+  try{
+    var eng=await loadWebLLM(onProg);
+    if(onProg)onProg("generating…",0);
+    var stream=await eng.chat.completions.create({messages:[{role:"system",content:SYSTEM},{role:"user",content:prompt}],
+      temperature:0.3,top_p:0.9,frequency_penalty:0.6,presence_penalty:0.4,max_tokens:700,stream:true});
+    var full="",lastChk=0;
+    for await(var chunk of stream){
+      var d=chunk.choices&&chunk.choices[0]&&chunk.choices[0].delta&&chunk.choices[0].delta.content;
+      if(d){full+=d;if(onTok)onTok(d);}
+      /* runaway-repetition guard: if the same line keeps repeating, stop */
+      if(full.length-lastChk>40){lastChk=full.length;
+        var ls=full.split("\n");
+        if(ls.length>=6){var tail=ls.slice(-6,-1),m={},mx=0;
+          tail.forEach(function(x){x=x.trim();if(x.length>8){m[x]=(m[x]||0)+1;if(m[x]>mx)mx=m[x];}});
+          if(mx>=4){try{if(eng.interruptGenerate)await eng.interruptGenerate();}catch(e){}break;}}
+      }
+    }
+    if(onDone)onDone();
+  }catch(e){if(onErr)onErr(e.message||String(e));}
+}
+/* ---------- online engine (Claude via Anthropic API; key stored on-device only) ---------- */
+var CLAUDE_URL="https://api.anthropic.com/v1/messages";
+function claudeHeaders(){return {"content-type":"application/json","x-api-key":AI.akey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"};}
+function claudeNetMsg(e){var m=(e&&e.message)||String(e||"");
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m))return "No connection to Claude — it needs internet. Your offline briefs and the organised sources still work.";
+  return m;}
+async function claudeTest(onOK,onErr){
+  if(!AI.akey){onErr("Add your Anthropic API key first.");return;}
+  try{var r=await fetch(CLAUDE_URL,{method:"POST",headers:claudeHeaders(),
+      body:JSON.stringify({model:AI.cmodel,max_tokens:1,messages:[{role:"user",content:"ping"}]})});
+    if(r.ok){onOK("connected ✓ · "+AI.cmodel);return;}
+    var t="";try{var j=await r.json();t=(j&&j.error&&j.error.message)||"";}catch(e){}
+    onErr("HTTP "+r.status+(t?" — "+t:"")+(r.status===404?" (set a current model ID from docs.claude.com/models)":r.status===401?" (check the API key)":""));
+  }catch(e){onErr(claudeNetMsg(e));}
+}
+async function claudeStream(prompt,onTok,onDone,onErr){
+  if(!AI.akey){onErr("Add your Anthropic API key in ⚙ to use Claude online.");return;}
+  try{
+    var resp=await fetch(CLAUDE_URL,{method:"POST",headers:claudeHeaders(),
+      body:JSON.stringify({model:AI.cmodel,max_tokens:1500,temperature:0.2,system:SYSTEM,
+        messages:[{role:"user",content:prompt}],stream:true})});
+    if(!resp.ok){var et="";try{var j=await resp.json();et=(j&&j.error&&j.error.message)||"";}catch(e){try{et=(await resp.text()).slice(0,200);}catch(e2){}}
+      onErr("HTTP "+resp.status+(et?" — "+et:"")+(resp.status===404?" (set a current model ID in ⚙)":resp.status===401?" (check the API key in ⚙)":resp.status===429?" (rate limit / out of credit)":""));return;}
+    var reader=resp.body.getReader(),dec=new TextDecoder(),buf="";
+    while(true){var rr=await reader.read();if(rr.done)break;buf+=dec.decode(rr.value,{stream:true});
+      var nl;while((nl=buf.indexOf("\n"))>=0){var line=buf.slice(0,nl).replace(/\r$/,"");buf=buf.slice(nl+1);
+        if(line.indexOf("data:")!==0)continue;var payload=line.slice(5).trim();if(!payload||payload==="[DONE]")continue;
+        try{var ev=JSON.parse(payload);
+          if(ev.type==="content_block_delta"&&ev.delta&&typeof ev.delta.text==="string"){onTok(ev.delta.text);}
+          else if(ev.type==="message_stop"){onDone();return;}
+          else if(ev.type==="error"){onErr((ev.error&&ev.error.message)||"stream error");return;}
+        }catch(e){}}}
+    onDone();
+  }catch(e){onErr(claudeNetMsg(e));}
+}
+function renderClaudeBrief(q,picks,mount){
+  var terms=hlTerms(q);
+  var html='<div class="ops-bottom"><div style="display:flex;align-items:flex-start;gap:10px"><b style="flex:1">Claude · '+esc(q)+'</b><button class="clrbtn" id="aiClear">Clear</button></div><span id="aistat" style="font-weight:400;color:var(--accent-ink)">contacting Claude…</span></div>';
+  html+='<div class="orient">Written by Claude ('+esc(AI.cmodel)+') online, from your retrieved sections — generated, not authority. Confirm in the EFB.</div>';
+  html+='<div class="ai-brief" id="aiout"></div>';
+  html+='<details class="src"><summary>Show the '+picks.length+' manual sources used</summary>'+sourcesHTML(picks,terms)+'</details>';
+  mount.innerHTML=html;
+  var out=mount.querySelector("#aiout"),stat=mount.querySelector("#aistat"),acc="",t0=Date.now(),phase="wait",timer=null;
+  function fmtS(s){return s<1?"<1s":(s<60?Math.round(s)+"s":Math.floor(s/60)+"m"+("0"+Math.round(s%60)).slice(-2)+"s");}
+  function tick(){if(!stat||!document.body.contains(stat)){clearInterval(timer);return;}
+    stat.textContent=(phase==="wait"?"contacting Claude · ":"writing · ")+fmtS((Date.now()-t0)/1000);}
+  timer=setInterval(tick,250);tick();
+  claudeStream(buildPrompt(q,picks),
+    function(tok){if(phase==="wait")phase="gen";acc+=tok;out.innerHTML=fmtAI(acc);},
+    function(){clearInterval(timer);if(stat)stat.textContent=acc?("done in "+fmtS((Date.now()-t0)/1000)+" — verify in the EFB"):"no output — try again";},
+    function(err){clearInterval(timer);if(stat)stat.textContent="error";out.innerHTML='<div class="notice">'+esc(err)+'</div>';});
+}
+/* ---------- compose (retrieval; + AI when on) ---------- */
+function bucketPicks(ranked){var used={},picks=[];
+  ROLES.forEach(function(role){var got=0;for(var i=0;i<ranked.length&&got<role.n;i++){var r=ranked[i];if(used[r.id]||!role.f(r))continue;used[r.id]=1;r._role=role.h;picks.push(r);got++;}});
+  return picks;}
+function sourcesHTML(picks,terms){var html="",byr={};picks.forEach(function(r){(byr[r._role]=byr[r._role]||[]).push(r);});
+  ROLES.forEach(function(role){var ps=byr[role.h];if(!ps)return;html+='<div class="opsg"><h3>'+esc(role.h)+'</h3>';ps.forEach(function(r){html+=resCard(r,terms);});html+='</div>';});
+  return html;}
+function composeBrief(q){
+  var terms=hlTerms(q),ranked=searchRanked(q,70),cur=curatedMatch(q);
+  if(!ranked.length&&!cur){main.innerHTML='<p class="hint">Nothing found for that. Try a system name, an EICAS message, or a phase of flight (e.g. <i>hydraulic</i>, <i>FUEL DISAGREE</i>, <i>oceanic</i>).</p>';return;}
+  var picks=bucketPicks(ranked),head="";
+  try{window.__validCites=new Set(picks.map(function(r){return normCite(citePlain(r));}));}catch(e){window.__validCites=null;}
+  if(cur){
+    head+='<div class="sheet-bar" style="padding-top:0"><span class="tag QRH">BRIEF</span>'+(cur.badge?'<span class="badge" style="margin-left:2px">'+esc(cur.badge)+'</span>':'')+'</div>';
+    head+=briefBodyHTML(cur);
+    if(AI.engine==="claude")head+='<div style="margin-top:14px"><button class="hbtn" id="askClaude" style="width:100%;padding:11px;font-size:.9rem">⌁ Ask Claude for a fresh online brief</button></div><div id="claudeMount"></div>';
+    head+='<details class="src" style="margin-top:16px"><summary>More from your manuals ('+picks.length+' sections)</summary>'+sourcesHTML(picks,terms)+'</details>';
+    main.innerHTML=head;window.scrollTo(0,0);
+    if(AI.engine==="claude"){var _ac=document.getElementById("askClaude");if(_ac)_ac.addEventListener("click",function(){_ac.style.display="none";renderClaudeBrief(q,picks,document.getElementById("claudeMount"));});}
+    return;
+  }
+  if(AI.engine!=="off"){
+    if(AI.engine==="claude"){main.innerHTML="";renderClaudeBrief(q,picks,main);window.scrollTo(0,0);return;}
+    var engn=AI.engine==="webllm"?("On-device · "+AI.wmodel.replace(/-MLC$/,"")):("Ollama · "+AI.model);
+    head+='<div class="ops-bottom"><div style="display:flex;align-items:flex-start;gap:10px"><b style="flex:1">AI brief · '+esc(q)+'</b><button class="clrbtn" id="aiClear">Clear</button></div><span id="aistat" style="font-weight:400;color:var(--accent-ink)">preparing…</span></div>';
+    head+='<div class="orient">Written by '+esc(engn)+' from the sources — generated, not authority. Confirm in the EFB.</div>';
+    head+='<div class="ai-brief" id="aiout"></div>';
+    head+='<details class="src"><summary>Show the '+picks.length+' manual sources used</summary>'+sourcesHTML(picks,terms)+'</details>';
+    main.innerHTML=head;window.scrollTo(0,0);
+    var out=document.getElementById("aiout"),stat=document.getElementById("aistat"),acc="";
+    /* ---- live ETA / timing ---- */
+    var _cal=etaGet(), TARGET_CH=_cal?_cal.avg:1800;   /* self-calibrated per device+model; 1800 until this device has written one */
+    var phase="prep", tStart=Date.now(), tGen=0, tWait=0, progT0=0, progP0=0, timer=null;
+    function fmtS(s){return s<1?"<1s":(s<60?Math.round(s)+"s":Math.floor(s/60)+"m"+("0"+Math.round(s%60)).slice(-2)+"s");}
+    function tick(){
+      if(!stat)return;
+      if(!document.body.contains(stat)){clearInterval(timer);return;}  /* result cleared/replaced */
+      if(phase==="prep"){stat.textContent="preparing · "+fmtS((Date.now()-tStart)/1000);}
+      else if(phase==="wait"){
+        var w=(Date.now()-tWait)/1000, s="generating · "+fmtS(w);
+        if(w>15)s+=window.__b7GenDone?" · compiling a new kernel on first use — one-time, then fast":" · first on-device run compiles shaders — can take a minute or two";
+        if(w>180)s+=". Still nothing? Tap Clear and retry, or pick a smaller model in ⚙.";
+        stat.textContent=s;
+      }
+      else if(phase==="gen"){
+        var el=(Date.now()-tGen)/1000, cps=acc.length/Math.max(el,0.3), tps=cps/4;
+        var s="writing · "+fmtS(el);
+        if(tps>=0.5)s+=" · "+(tps>=1?Math.round(tps):tps.toFixed(1))+" tok/s";
+        if(cps>5&&acc.length<TARGET_CH)s+=" · ~"+fmtS((TARGET_CH-acc.length)/cps)+" left";
+        else if(acc.length>=TARGET_CH)s+=" · wrapping up…";
+        stat.textContent=s;
+      }
+    }
+    timer=setInterval(tick,250);tick();
+    var onTok=function(tok){if(phase!=="gen"){phase="gen";tGen=Date.now();}acc+=tok;out.innerHTML=fmtAI(acc);};
+    var onDone=function(){clearInterval(timer);window.__b7GenDone=true;if(acc)etaPut(acc.length);var el=tGen?((Date.now()-tGen)/1000):0;if(stat)stat.textContent="done in "+fmtS(el)+" — verify in the EFB";};
+    var onErr=function(err){clearInterval(timer);if(stat)stat.textContent="error";out.innerHTML='<div class="notice">'+esc(err)+'</div>';};
+    var onProg=function(txt,prog){if(!stat)return;
+      if(prog&&prog>0){phase="load";if(!progT0){progT0=Date.now();progP0=prog;}
+        var dt=(Date.now()-progT0)/1000, dp=prog-progP0, eta="";
+        if(dp>0.02&&dt>0.6){eta=" · ~"+fmtS((1-prog)/(dp/dt))+" left";}
+        stat.textContent=txt+" "+Math.round(prog*100)+"%"+eta;
+      }else if(/generat/i.test(txt)){if(phase!=="wait"){phase="wait";tWait=Date.now();}}
+      else{phase="load";stat.textContent=txt;}};
+    if(AI.engine==="ollama") ollamaStream(buildPrompt(q,picks),onTok,onDone,onErr);
+    else webllmStream(buildPrompt(q,picks,true),onTok,onDone,onErr,onProg);
+  }else{
+    var manset={};ranked.slice(0,40).forEach(function(r){manset[r.manual]=1;});
+    head+='<div class="ops-bottom"><b>Brief · '+esc(q)+'</b>The operational picture pulled from your '+Object.keys(manset).map(function(m){return MLABEL[m];}).join(' · ')+'. Organised by what it means. <i>Turn on local AI in ⚙ to have your model write it.</i></div>';
+    head+='<div class="orient">Assembled from your actual manuals — an organised read, not an AI opinion. Confirm in the EFB.</div>'+sourcesHTML(picks,terms);
+    main.innerHTML=head;window.scrollTo(0,0);
+  }
+}
+
+/* ---------- home ---------- */
+function home(){
+  var html='<div class="bhint">Type any situation — a system, an EICAS message, a phase of flight — and get <b>one brief</b> built from across all your manuals: what to do, the dispatch/legal angle, limitations, how it works, technique and your notes. Everything tappable to the exact page. Study aid; fly the EFB.</div>';
+  var trusted=BRIEFS.filter(function(b){return !b.draft;});
+  html+='<div class="qp-h">Key briefs</div><div class="qp">';
+  trusted.forEach(function(b){html+='<button data-qp="'+esc(b.title)+'">'+esc(b.title)+'</button>';});
+  html+='</div>';
+  html+='<div class="bhint" style="margin-top:16px"><b>'+BRIEFS.length.toLocaleString()+' topics</b> across all your manuals — type anything (a system, an EICAS message, a country, a procedure) to pull its brief. Every brief is <span class="badge" style="font-size:.6rem">REASONED</span> from your manuals — a study aid; verify against the EFB before trusting.</div>';
+  main.innerHTML=html;
+}
+
+/* ---------- about ---------- */
+function openAbout(){
+  var html='<div class="sheet-bar"><b style="font-size:1rem">Library currency</b><button class="x" id="sheetX">×</button></div>';
+  html+='<div class="lbl">Built from</div>';
+  MANIFEST.forEach(function(m){var lab=MLABEL[m.manual]||m.manual;var meta=m.rev||(m.effective?'eff '+m.effective:'');
+    html+='<div class="about-row"><span>'+lab+(meta?' · '+meta:'')+'</span><span>'+m.chunks+' sections'+(m.stamp?'<br>'+m.stamp:'')+'</span></div>';});
+  html+='<div class="notice" style="margin-top:20px"><b>Not for operational use.</b> Built from your own manual exports (watermarked with your staff number). Keep this file private. Re-run the pipeline when Vistair publishes a revision.</div>';
+  var sheet=document.getElementById("sheet");sheet.innerHTML=html;sheet.scrollTop=0;document.getElementById("overlay").classList.add("show");
+}
+
+/* ---------- settings (local AI) ---------- */
+function openSettings(){
+  var html='<div class="sheet-bar"><b style="font-size:1rem">AI engine — settings</b><button class="x" id="sheetX">×</button></div>';
+  html+='<div class="orient">Have a model write the brief from the retrieved sections. Pick an engine: <b>Claude (online)</b> — best quality, needs internet + your API key; your PC\'s Ollama (big, local); or an on-device model that runs in the browser — the same one that runs on your iPhone, fully offline.</div>';
+  html+='<div class="setrow col"><span>Engine</span><select id="aiEngine">'+
+    '<option value="off"'+(AI.engine==="off"?" selected":"")+'>Off — show organised sources only</option>'+
+    '<option value="claude"'+(AI.engine==="claude"?" selected":"")+'>Claude (online) — best quality, needs internet + API key</option>'+
+    '<option value="ollama"'+(AI.engine==="ollama"?" selected":"")+'>Ollama — local server on this PC</option>'+
+    '<option value="webllm"'+(AI.engine==="webllm"?" selected":"")+'>On-device (WebLLM) — runs on iPhone too, offline</option>'+
+    '</select></div>';
+  html+='<div id="ollamaCfg"><div class="setrow col"><span>Ollama URL</span><input type="text" id="aiUrl" value="'+esc(AI.url)+'"></div>'+
+    '<div class="setrow col"><span>Model (installed)</span><select id="aiModel"><option>'+esc(AI.model)+'</option></select></div>'+
+    '<button class="hbtn" id="aiTest" style="margin-top:12px">Test / refresh models</button> <span id="aiTestR" style="color:var(--ink2);font-size:.82rem"></span>'+
+    '<div class="notice" style="margin-top:14px"><b>Ollama.</b> Install it, pull a model, open this page via the launcher (localhost — no OLLAMA_ORIGINS needed). On the 5090 pick a big one (e.g. qwen2.5:14b).</div></div>';
+  html+='<div id="wllmCfg"><div class="setrow col"><span>On-device model (small — iPhone-capable)</span><select id="wModel">'+
+    WLLM_MODELS.map(function(m){return '<option'+(m===AI.wmodel?" selected":"")+'>'+esc(m)+'</option>';}).join("")+'</select></div>'+
+    '<button class="hbtn" id="wLoad" style="margin-top:12px">Download / load model</button> <span id="wStat" style="color:var(--ink2);font-size:.82rem"></span>'+
+    '<div class="notice" style="margin-top:14px">Runs the model <b>in the browser</b> via WebGPU — the same engine that runs on your iPhone 16 Pro Max (Safari, iOS 18+). First load downloads the model once (~1–2 GB) then caches. <b>Must be opened from the launcher (localhost)</b> — WebGPU needs a secure context. 1.5–3B only, so answers are lighter than the PC Ollama — that\'s the iPhone tradeoff. Emulate the phone in the Device Preview.</div></div>';
+  html+='<div id="claudeCfg"><div class="setrow col"><span>Anthropic API key (stored only on this device)</span><input type="text" id="aKey" placeholder="sk-ant-..." value="'+esc(AI.akey)+'" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>'+
+    '<div class="setrow col"><span>Claude model</span><input type="text" id="cModel" value="'+esc(AI.cmodel)+'" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>'+
+    '<button class="hbtn" id="cTest" style="margin-top:12px">Test connection</button> <span id="cTestR" style="color:var(--ink2);font-size:.82rem"></span>'+
+    '<div class="notice" style="margin-top:14px"><b>Claude (online).</b> On a search, the app finds the relevant sections of <i>your</i> manuals on-device and sends just those extracts + your question to the Anthropic API; Claude writes a cited brief. Needs internet (works on inflight wifi; falls back to your offline briefs when offline). Get a key at <code>console.anthropic.com</code> — it is stored only on this device and never shipped in the files. Costs about a cent or two per brief; set a spend cap in the console. If the test says the model is unknown, set a current model ID from <code>docs.claude.com/models</code>. Study aid — fly the EFB.</div></div>';
+  var sheet=document.getElementById("sheet");sheet.innerHTML=html;sheet.scrollTop=0;document.getElementById("overlay").classList.add("show");
+  function showBlocks(){document.getElementById("ollamaCfg").style.display=AI.engine==="ollama"?"block":"none";
+    document.getElementById("wllmCfg").style.display=AI.engine==="webllm"?"block":"none";
+    document.getElementById("claudeCfg").style.display=AI.engine==="claude"?"block":"none";}
+  function populate(msg){var sel=document.getElementById("aiModel"),rE=document.getElementById("aiTestR");if(!sel)return;if(rE&&msg)rE.textContent=msg;
+    return fetch(AI.url.replace(/\/+$/,"")+"/api/tags").then(function(r){return r.ok?r.json():Promise.reject("HTTP "+r.status);})
+      .then(function(j){var n=(j.models||[]).map(function(m){return m.name;});
+        if(n.length){sel.innerHTML=n.map(function(x){return '<option'+(x===AI.model?' selected':'')+'>'+esc(x)+'</option>';}).join("");
+          if(n.indexOf(AI.model)<0){AI.model=n[0];saveAI();sel.value=n[0];}}
+        if(rE)rE.textContent="connected ✓ · "+n.length+" models — using "+esc(AI.model);})
+      .catch(function(e){if(rE)rE.textContent="not reachable: "+e;});}
+  showBlocks();
+  document.getElementById("aiEngine").addEventListener("change",function(){AI.engine=this.value;saveAI();showBlocks();if(AI.engine==="ollama")populate();});
+  document.getElementById("aiUrl").addEventListener("change",function(){AI.url=this.value.trim()||AI.url;saveAI();populate("checking…");});
+  document.getElementById("aiModel").addEventListener("change",function(){AI.model=this.value;saveAI();});
+  document.getElementById("aiTest").addEventListener("click",function(){populate("checking…");});
+  document.getElementById("wModel").addEventListener("change",function(){AI.wmodel=this.value;saveAI();});
+  document.getElementById("wLoad").addEventListener("click",function(){var st=document.getElementById("wStat");st.textContent="starting…";
+    loadWebLLM(function(txt,prog){st.textContent=txt+(prog?(" "+Math.round(prog*100)+"%"):"");}).then(function(){st.textContent="model ready ✓ — now type a topic";}).catch(function(e){st.textContent="error: "+(e.message||e);});});
+  var _ak=document.getElementById("aKey");if(_ak)_ak.addEventListener("change",function(){AI.akey=this.value.trim();saveAI();});
+  var _cm=document.getElementById("cModel");if(_cm)_cm.addEventListener("change",function(){AI.cmodel=this.value.trim()||AI.cmodel;saveAI();});
+  var _ct=document.getElementById("cTest");if(_ct)_ct.addEventListener("click",function(){var r=document.getElementById("cTestR");r.textContent="checking…";
+    if(_ak)AI.akey=_ak.value.trim();if(_cm)AI.cmodel=_cm.value.trim()||AI.cmodel;saveAI();
+    claudeTest(function(m){r.textContent=m;},function(e){r.textContent=e;});});
+  if(AI.engine==="ollama")populate();
+}
+
+/* ---------- events ---------- */
+var MANIFEST=[], main=document.getElementById("main"), qEl=document.getElementById("q"), clrEl=document.getElementById("clr"), tmr=null;
+function run(){var q=qEl.value.trim();clrEl.hidden=!q;if(!q){home();return;}composeBrief(q);}
+
+/* ---------- live topic autocomplete (sourced from BRIEFS, auto-updates as briefs grow) ---------- */
+var suggEl=document.getElementById("sugg"),_tCache=null,_tCacheN=-1,suggItems=[],suggActive=-1;
+function topicList(){
+  if(_tCache&&_tCacheN===BRIEFS.length)return _tCache;      /* rebuilds whenever the brief set changes */
+  var seen={},out=[];
+  for(var i=0;i<BRIEFS.length;i++){var t=(BRIEFS[i].title||"").trim();if(!t)continue;var k=t.toLowerCase();if(seen[k])continue;seen[k]=1;out.push({t:t,l:k,tag:BRIEFS[i].tag||BRIEFS[i].badge||""});}
+  out.sort(function(a,b){return a.l<b.l?-1:a.l>b.l?1:0;});
+  _tCache=out;_tCacheN=BRIEFS.length;return out;
+}
+function hideSugg(){if(suggEl){suggEl.hidden=true;suggEl.innerHTML="";}suggItems=[];suggActive=-1;qEl.setAttribute("aria-expanded","false");}
+function showSugg(raw){
+  var q=(raw||"").trim().toLowerCase();if(!q){hideSugg();return;}
+  var list=topicList(),res=[];
+  for(var i=0;i<list.length;i++){var it=list[i],l=it.l,sc=-1;
+    if(l.indexOf(q)===0)sc=0;
+    else{var ws=l.split(/[^a-z0-9]+/);for(var w=0;w<ws.length;w++){if(ws[w]&&ws[w].indexOf(q)===0){sc=1;break;}}
+      if(sc<0&&l.indexOf(q)>=0)sc=2;}
+    if(sc<0)continue;
+    if(l===q&&sc===0&&res.length)continue;   /* exact-typed title isn't a useful suggestion unless it's the only hit */
+    res.push([sc,l.length,it]);}
+  res.sort(function(a,b){return a[0]-b[0]||a[1]-b[1]||(a[2].l<b[2].l?-1:1);});
+  res=res.slice(0,12);
+  if(!res.length){hideSugg();return;}
+  suggItems=res.map(function(r){return r[2].t;});
+  var ql=q.length,html="";
+  for(var j=0;j<res.length;j++){var it=res[j][2],disp=esc(it.t),p=it.l.indexOf(q);
+    if(p>=0)disp=esc(it.t.slice(0,p))+"<mark>"+esc(it.t.slice(p,p+ql))+"</mark>"+esc(it.t.slice(p+ql));
+    html+='<div class="sgi" data-sugg="'+j+'" role="option"><span class="sgt">'+disp+'</span></div>';}
+  suggEl.innerHTML=html;suggEl.hidden=false;suggActive=-1;qEl.setAttribute("aria-expanded","true");
+}
+function setActive(i){var rows=suggEl.children;if(!rows.length)return;
+  if(suggActive>=0&&rows[suggActive])rows[suggActive].classList.remove("on");
+  suggActive=(i+rows.length)%rows.length;rows[suggActive].classList.add("on");
+  if(rows[suggActive].scrollIntoView)rows[suggActive].scrollIntoView({block:"nearest"});}
+function pickSugg(i){if(i<0||i>=suggItems.length)return;qEl.value=suggItems[i];clrEl.hidden=false;hideSugg();clearTimeout(tmr);run();qEl.blur();window.scrollTo(0,0);}
+
+qEl.addEventListener("input",function(){clearTimeout(tmr);showSugg(qEl.value);tmr=setTimeout(run,150);});
+qEl.addEventListener("focus",function(){if(qEl.value.trim())showSugg(qEl.value);});
+qEl.addEventListener("keydown",function(e){
+  if(suggEl.hidden){if(e.key==="Enter")qEl.blur();return;}
+  if(e.key==="ArrowDown"){e.preventDefault();setActive(suggActive+1);}
+  else if(e.key==="ArrowUp"){e.preventDefault();setActive(suggActive-1);}
+  else if(e.key==="Enter"){if(suggActive>=0){e.preventDefault();pickSugg(suggActive);}else{hideSugg();qEl.blur();}}
+  else if(e.key==="Escape"){hideSugg();}
+});
+suggEl.addEventListener("mousedown",function(e){var r=e.target.closest("[data-sugg]");if(r){e.preventDefault();pickSugg(+r.dataset.sugg);}});
+document.addEventListener("click",function(e){if(!e.target.closest(".searchrow"))hideSugg();});
+clrEl.addEventListener("click",function(){qEl.value="";hideSugg();qEl.focus();run();});
+main.addEventListener("click",function(e){
+  if(e.target.closest("#aiClear")){qEl.value="";clrEl.hidden=true;home();window.scrollTo(0,0);return;}
+  var qp=e.target.closest("[data-qp]"); if(qp){qEl.value=qp.dataset.qp;run();qEl.blur();return;}
+  var br=e.target.closest("[data-brief]"); if(br){openBrief(br.dataset.brief);return;}
+  var c=e.target.closest(".card[data-id]"); if(c){openSource(+c.dataset.id);return;}
+});
+document.getElementById("sheet").addEventListener("click",function(e){
+  if(e.target.id==="sheetX"){closeSheet();return;}
+  var cite=e.target.closest("[data-cid]"); if(cite){openSource(+cite.dataset.cid);return;}
+});
+document.getElementById("overlay").addEventListener("click",function(e){if(e.target===this)closeSheet();});
+document.getElementById("aboutBtn").addEventListener("click",openAbout);
+document.getElementById("setBtn").addEventListener("click",openSettings);
+
+/* theme */
+var THEMES=["auto","day","night"],TNAME={auto:"◐ Auto",day:"☀ Day",night:"☾ Night"};
+function getTheme(){try{return localStorage.getItem("b7_theme")||"auto";}catch(e){return"auto";}}
+function setTheme(t){if(t==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",t);
+  try{localStorage.setItem("b7_theme",t);}catch(e){}document.getElementById("themeBtn").textContent=TNAME[t];}
+document.getElementById("themeBtn").addEventListener("click",function(){var t=getTheme(),i=(THEMES.indexOf(t)+1)%THEMES.length;setTheme(THEMES[i]);});
+setTheme(getTheme());
+
+/* ---- on-device data store (IndexedDB) + first-run import ---- */
+function idb(mode,fn){return new Promise(function(res,rej){var o=indexedDB.open("b7db",1);
+  o.onupgradeneeded=function(){o.result.createObjectStore("kv");};
+  o.onerror=function(){rej(o.error);};
+  o.onsuccess=function(){try{var st=o.result.transaction("kv",mode).objectStore("kv");fn(st,res,rej);}catch(e){rej(e);}};});}
+function idbGet(k){return idb("readonly",function(st,res,rej){var r=st.get(k);r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
+function idbSet(k,v){return idb("readwrite",function(st,res,rej){var r=st.put(v,k);r.onsuccess=function(){res();};r.onerror=function(){rej(r.error);};});}
+
+async function loadData(bytes){
+  var data=JSON.parse(await gunzipToText(bytes));
+  var C=data.cols,iId=C.indexOf("id"),iMan=C.indexOf("manual"),iCr=C.indexOf("breadcrumb"),iT=C.indexOf("title"),iP=C.indexOf("page"),iR=C.indexOf("rev"),iRd=C.indexOf("revdate"),iTx=C.indexOf("text");
+  var docs=data.rows.map(function(r){return {id:r[iId],manual:r[iMan],breadcrumb:r[iCr],title:r[iT],page:r[iP],rev:r[iR],revdate:r[iRd],text:r[iTx]};});
+  MANIFEST.length=0;(data.man||[]).forEach(function(m){MANIFEST.push({manual:m[0],chunks:m[1],effective:m[2],stamp:m[3],rev:m[4]});});
+  MANIFEST.sort(function(a,b){return MANUALS.indexOf(a.manual)-MANUALS.indexOf(b.manual);});
+  BRIEFS=data.briefs||[];
+  window.__DATAINFO=MANIFEST.map(function(m){return (MLABEL[m.manual]||m.manual);}).join(" · ")+"  ("+docs.length+" sections)";
+  buildIndex(docs);
+}
+function finishReady(){home();document.getElementById("loading").style.display="none";qEl.focus();}
+function showImport(isReplace){
+  var l=document.getElementById("loading");l.style.display="flex";
+  l.innerHTML='<div style="max-width:440px;text-align:center;padding:26px">'
+    +'<b style="font-size:1.1rem">B777 Companion</b>'
+    +'<p style="color:var(--ink2);line-height:1.55;margin:16px 0">'+(isReplace?'Load an updated ':'First run — load your ')
+    +'manual data file (<code>b777data.json.gz</code>). It is stored on this device only; nothing is uploaded.</p>'
+    +'<label class="impbtn" style="display:inline-block;background:var(--accent);color:#1a1205;font-weight:700;border-radius:999px;padding:12px 22px;cursor:pointer">Choose b777data.json.gz'
+    +'<input id="impf" type="file" accept=".gz,application/gzip,application/octet-stream" style="display:none"></label>'
+    +'<p id="impmsg" style="color:var(--ink2);margin-top:16px;min-height:1.2em"></p></div>';
+  document.getElementById("impf").addEventListener("change",async function(e){
+    var f=e.target.files&&e.target.files[0];if(!f)return;
+    var im=document.getElementById("impmsg");
+    try{im.textContent="Reading "+(f.size/1048576).toFixed(1)+" MB…";
+      var buf=new Uint8Array(await f.arrayBuffer());
+      im.textContent="Saving on device…";await idbSet("corpus",buf);
+      im.textContent="Indexing…";await new Promise(function(r){setTimeout(r,0);});await loadData(buf);
+      finishReady();
+    }catch(err){im.innerHTML='<span class="err">'+esc(err.message||String(err))+'</span>';}
+  });
+}
+
+/* boot */
+(async function(){var msg=document.getElementById("loadmsg");
+  try{
+    var bytes=null; try{bytes=await idbGet("corpus");}catch(e){}
+    if(!bytes){showImport(false);return;}
+    if(!(bytes instanceof Uint8Array))bytes=new Uint8Array(bytes);
+    msg.textContent="Unpacking the manuals…";await new Promise(function(r){setTimeout(r,0);});
+    await loadData(bytes);
+    finishReady();
+  }catch(e){msg.innerHTML='<span class="err">Could not start: '+esc(e.message||String(e))+'</span>';var ring=document.querySelector(".ring");if(ring)ring.style.display="none";}
+})();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+</script>
+</body>
+</html>
